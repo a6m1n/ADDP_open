@@ -1,0 +1,2 @@
+[prod]
+aws_django  ansible_host=HOST_IP

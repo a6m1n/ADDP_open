@@ -1,0 +1,6 @@
+1) Нужно добавить в ansible variables
+2) Compose up from server
+--------------
+NEED TO CHANDE FILES:
+ ANSIBLE/deploy.yml
+ ANSIBLE/group_vars/deploy.yml

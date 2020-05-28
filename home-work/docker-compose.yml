@@ -1,0 +1,30 @@
+version: '3'
+
+
+services:
+  db:
+    container_name: unique_postgres
+    image: postgres:12.1-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+  web:
+    build: ./project
+    container_name: unique_django
+    command: gunicorn project.wsgi:application --bind 0.0.0.0:8000
+    volumes: 
+      - ./project:/project
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+  nginx:
+    container_name: unique_nginx
+    build: ./nginx
+    ports:
+      - 80:80
+    depends_on:
+      - web
+
+
+volumes:
+  postgres_data:

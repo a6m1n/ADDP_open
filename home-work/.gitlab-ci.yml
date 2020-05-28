@@ -1,0 +1,53 @@
+stages:
+    - build
+    - test
+    - push
+    - deploy
+
+services:
+    - docker:dind
+
+default:
+  before_script:
+    - echo "$DOCKER_REGISTRY_PASSWORD" | docker login --username "$DOCKER_REGISTRY_USER" --password-stdin $DOCKER_REGISTRY_URL
+
+build:
+    stage: build
+    script:
+        - echo "Building"
+        - docker build -t $DOCKER_REGISTRY_URL/$LINK_TO_GIT:$DOCKER_CUSTOM_NAME .
+    tags:
+        -  home-work133
+    only:
+        - master
+
+test:
+    stage: test
+    script:
+        - echo "Testing"
+        - docker run $DOCKER_REGISTRY_URL/$LINK_TO_GIT:$DOCKER_CUSTOM_NAME pip install -r requirements.txt 
+        - docker run $DOCKER_REGISTRY_URL/$LINK_TO_GIT:$DOCKER_CUSTOM_NAME $PATH_TO_TESTS $RUN_TEST_COMMAND
+    tags:
+        -  home-work133
+    
+push:
+    stage: push
+    script:
+        - echo "Pushing"
+        - docker push $DOCKER_REGISTRY_URL/$LINK_TO_GIT:$DOCKER_CUSTOM_NAME
+    tags:
+        -  home-work133
+
+deploy:
+    stage: deploy
+    script:
+        - echo "Deploy"
+        - docker run $DOCKER_REGISTRY_URL/$LINK_TO_GIT:$DOCKER_CUSTOM_NAME pip install ansible
+        - docker run $DOCKER_REGISTRY_URL/$LINK_TO_GIT:$DOCKER_CUSTOM_NAME ansible-playbook -i ansible ansible/deploy.yml
+    tags:
+        -  home-work133
+    only:
+        - master    
+
+    
+

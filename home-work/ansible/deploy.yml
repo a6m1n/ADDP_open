@@ -1,0 +1,75 @@
+---
+- name: Install requirements 
+  hosts: prod
+  become: yes
+  
+  tasks:
+  - name: Ping my server
+    ping:
+
+  - name: Update and upgrade apt packages
+    become: true
+    apt:
+      upgrade: yes
+      update_cache: yes
+  
+  - name: Install required system packages
+    apt: 
+      name: "{{ item }}" 
+      state: latest
+      update_cache: yes
+    with_items:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - software-properties-common
+      - python3-pip
+      - virtualenv
+      - python3-setuptools
+      - git
+
+  - name: Add Docker GPG apt Key
+    apt_key:
+      url: https://download.docker.com/linux/ubuntu/gpg
+      state: present
+
+  - name: Add Docker Repository
+    apt_repository:
+      repo: deb https://download.docker.com/linux/ubuntu bionic stable
+      state: present
+
+  - name: Update apt and install docker-ce
+    apt: 
+      update_cache: yes
+      name: docker-ce
+      state: latest
+
+  - name: Update apt and install python-docker
+    apt: 
+      update_cache: yes
+      name: python-docker
+      state: latest
+  
+  - name: Update apt Install docker-compose
+    apt:
+      name: docker-compose
+      state: present
+      update_cache: yes
+
+  - name: Log into private registry
+    docker_login:
+      registry: LINK_TO_GITLAB_REGISTRY     #CHANGE_THIS
+      username: USERNAME_TO_GITLAB_REGISTRY #CHANGE_THIS
+      password: PASSWORD_TO_GITLAB_REGISTRY #CHANGE_THIS
+      reauthorize: yes
+
+  - name: pull an image
+    docker_image:
+      name: URL_TO_YOUR_IMAGE #CHANGE_THIS
+
+  - name: Creates directory
+    file:
+      path: /src/www
+      state: directory
+  
+

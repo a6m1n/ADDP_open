@@ -1,0 +1,62 @@
+image: docker:git
+
+stages:
+    - build
+    - test
+    - push 
+    - release
+    - local-run
+
+services:
+- docker:dind
+
+default:
+  before_script:
+    - echo "$DOCKER_REGISTRY_PASSWORD" | docker login --username "$DOCKER_REGISTRY_USER" --password-stdin $DOCKER_REGISTRY_URL
+
+build:
+    stage: build
+    script:
+        - echo "Building"
+        - docker build -t $DOCKER_REGISTRY_URL/$LINK_TO_GIT:$DOCKER_CUSTOM_NAME .
+    tags:
+        -  home-work133
+    only:
+        - master
+
+test:
+    stage: test
+    script:
+        - echo "Testing"
+        - docker run $DOCKER_REGISTRY_URL/$LINK_TO_GIT:$DOCKER_CUSTOM_NAME pip install -r requirements.txt 
+        - docker run $DOCKER_REGISTRY_URL/$LINK_TO_GIT:$DOCKER_CUSTOM_NAME $PATH_TO_TESTS $RUN_TEST_COMMAND
+    tags:
+        -  home-work133
+    
+push:
+    stage: push
+    script:
+        - echo "Pushing"
+        - docker push $DOCKER_REGISTRY_URL/$LINK_TO_GIT:$DOCKER_CUSTOM_NAME
+    tags:
+        -  home-work133
+
+release: #<-- need add tag runner
+    stage: release
+    script:
+        - echo "Releasing"
+        - docker tag $DOCKER_REGISTRY_URL/$LINK_TO_GIT:$DOCKER_CUSTOM_NAME $DOCKER_RELESE
+        - docker push $DOCKER_RELESE #<--need to add variable $DOCKER_RELESE
+
+    
+local-run: #<-- need add nginx&gunicorn
+    stage: local-run
+    script:
+        - echo "Local running"
+        - apk add --no-cache py-pip python-dev libffi-dev openssl-dev gcc libc-dev make
+        - pip install docker-compose
+        - docker-compose up -d
+    tags:
+        -  home-work133
+
+
